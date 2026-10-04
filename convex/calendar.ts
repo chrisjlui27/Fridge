@@ -141,11 +141,6 @@ export const range = householdQuery({
 // ---------------------------------------------------------------------------
 // Fetching (cron every 20 minutes)
 
-export const allFeedIds = internalQuery({
-  args: {},
-  handler: async (ctx) => (await ctx.db.query("calendarFeeds").collect()).map((f) => f._id),
-});
-
 export const feedForRefresh = internalQuery({
   args: { feedId: v.id("calendarFeeds") },
   handler: async (ctx, { feedId }) => {
@@ -157,12 +152,12 @@ export const feedForRefresh = internalQuery({
   },
 });
 
-export const refreshAll = internalAction({
+export const refreshAll = internalMutation({
   args: {},
   handler: async (ctx) => {
-    const ids = await ctx.runQuery(internal.calendar.allFeedIds, {});
-    for (const feedId of ids) {
-      await ctx.runAction(internal.calendar.refreshFeed, { feedId });
+    // One scheduled refresh per feed, so a slow calendar can't hold up the rest.
+    for (const feed of await ctx.db.query("calendarFeeds").collect()) {
+      await ctx.scheduler.runAfter(0, internal.calendar.refreshFeed, { feedId: feed._id });
     }
   },
 });

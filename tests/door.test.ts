@@ -151,7 +151,7 @@ describe("private space", () => {
     const { json } = await t.action(api.exporter.download, { sessionToken: tokens.dad });
     expect(json).not.toContain("Gift idea");
     // On the wall, it needs Ava (with her PIN) tapped in.
-    await expectError(t.query(api.mine.list, { sessionToken: tokens.wall }), "PICK_PROFILE");
+    expect(await t.query(api.mine.list, { sessionToken: tokens.wall })).toBeNull();
     await actOnWall(t, tokens.wall, ids.ava);
     expect(await t.query(api.mine.list, { sessionToken: tokens.wall })).toHaveLength(1);
     await t.mutation(api.mine.toggleDone, { sessionToken: tokens.ava, id });

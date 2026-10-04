@@ -45,7 +45,7 @@ function checkPassword(password: string) {
 }
 
 function checkPin(pin: string) {
-  if (!/^\d{4,8}$/.test(pin)) fail("INVALID", "A PIN is 4 to 8 digits.");
+  if (!/^\d{4}$/.test(pin)) fail("INVALID", "A PIN is 4 digits.");
 }
 
 function label(deviceLabel: string) {

@@ -1,6 +1,6 @@
 import { internalMutation, type QueryCtx } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
-import { householdQuery, requireActor } from "./lib/session";
+import { householdQuery } from "./lib/session";
 import { addDays, localDay, localTime, minutesOf, zonedToMs } from "./lib/time";
 import { assigneeOf } from "./lib/jobs";
 import { queuePing } from "./lib/notify";
@@ -105,7 +105,8 @@ async function composeDigest(
 export const preview = householdQuery({
   args: {},
   handler: async (ctx) => {
-    const me = requireActor(ctx.s);
+    const me = ctx.s.viewer;
+    if (!me) return null;
     return await composeDigest(ctx, ctx.s.household, me, Date.now());
   },
 });

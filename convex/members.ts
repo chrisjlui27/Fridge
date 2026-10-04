@@ -205,7 +205,8 @@ export const setStatus = householdMutation({
 export const myPrefs = householdQuery({
   args: {},
   handler: async (ctx) => {
-    const me = requireActor(ctx.s);
+    const me = ctx.s.viewer;
+    if (!me) return null;
     return {
       digestTime: me.digestTime === "" ? null : me.digestTime ?? DEFAULT_DIGEST_TIME,
       quietStart: me.quietStart ?? DEFAULT_QUIET_START,

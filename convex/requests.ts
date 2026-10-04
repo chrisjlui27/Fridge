@@ -213,9 +213,12 @@ export const complete = householdMutation({
 export const mine = householdQuery({
   args: {},
   handler: async (ctx) => {
-    const me = requireActor(ctx.s);
+    const me = ctx.s.viewer;
+    if (!me) return null;
     const recent = Date.now() - 2 * 86_400_000;
-    const keep = (r: Doc<"requests">) => ACTIVE.has(r.status) || r.updatedAt > recent;
+    // Recently finished ones linger for a bit; withdrawn ones just go away.
+    const keep = (r: Doc<"requests">) =>
+      ACTIVE.has(r.status) || (r.status !== "withdrawn" && r.updatedAt > recent);
     const toMe = (
       await ctx.db
         .query("requests")

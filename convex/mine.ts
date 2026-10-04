@@ -26,7 +26,9 @@ async function ownNote(ctx: QueryCtx, s: SessionInfo, id: Id<"privateNotes">) {
 export const list = householdQuery({
   args: {},
   handler: async (ctx) => {
-    const me = requireActor(ctx.s);
+    // On the wall with nobody tapped in there is no "me" - show nothing.
+    const me = ctx.s.viewer;
+    if (!me) return null;
     const notes = await ctx.db
       .query("privateNotes")
       .withIndex("by_member", (q) => q.eq("memberId", me._id))
