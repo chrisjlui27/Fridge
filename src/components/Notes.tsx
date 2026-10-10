@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FunctionReturnType } from "convex/server";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -76,7 +76,16 @@ export function NoteCard({ note, onOpen, big = false }: { note: DoorNote; onOpen
 }
 
 /** Write a note, or edit one you're allowed to edit. */
-export function NoteComposer({ onClose, editing }: { onClose: () => void; editing?: DoorNote }) {
+export function NoteComposer({
+  onClose,
+  editing,
+  initialPhoto,
+}: {
+  onClose: () => void;
+  editing?: DoorNote;
+  /** A photo just taken with the camera shortcut. */
+  initialPhoto?: File;
+}) {
   const { members, viewer } = useSession();
   const toast = useToast();
   const create = useM(api.notes.create);
@@ -97,6 +106,15 @@ export function NoteComposer({ onClose, editing }: { onClose: () => void; editin
     },
     [image],
   );
+
+  const usedInitial = useRef(false);
+  useEffect(() => {
+    if (initialPhoto && !usedInitial.current) {
+      usedInitial.current = true;
+      void pickPhoto(initialPhoto);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPhoto]);
 
   async function pickPhoto(file: File | undefined) {
     if (!file) return;
@@ -197,10 +215,24 @@ export function NoteComposer({ onClose, editing }: { onClose: () => void; editin
       {!editing && (
         <div className="row wrap">
           <label className="btn ghost small file-btn">
-            📷 Photo
+            📸 Take photo
             <input
               type="file"
               accept="image/*"
+              capture="environment"
+              aria-label="Take a photo"
+              onChange={(e) => {
+                void pickPhoto(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+          </label>
+          <label className="btn ghost small file-btn">
+            🖼️ Choose photo
+            <input
+              type="file"
+              accept="image/*"
+              aria-label="Choose a photo"
               onChange={(e) => {
                 void pickPhoto(e.target.files?.[0]);
                 e.target.value = "";

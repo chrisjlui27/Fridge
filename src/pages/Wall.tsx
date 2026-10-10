@@ -12,6 +12,7 @@ import { NoteCard, NoteComposer, NoteDetail } from "../components/Notes";
 import { Sheet } from "../components/Sheet";
 import { useToast } from "../components/Toast";
 import { PrivateSpace } from "./Me";
+import { PollList } from "../components/Polls";
 
 declare global {
   interface Window {
@@ -195,6 +196,7 @@ export function WallPage() {
               ＋ Note
             </button>
           </div>
+          <PollList big />
           {doorNotes.length === 0 ? (
             <p className="muted">The door is empty. Put something up!</p>
           ) : (

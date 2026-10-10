@@ -167,3 +167,70 @@ test("draw a doodle and put it on the fridge", async ({ browser }) => {
   const loaded = await note.locator("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0);
   expect(loaded).toBe(true);
 });
+
+test("calendar: a weekly event, with one date moved", async ({ browser }) => {
+  const ava = await open(browser, "ava", "/calendar");
+  await ava.getByRole("button", { name: "＋ Event" }).click();
+  await ava.getByLabel("What").fill("Swim lessons");
+  await ava.locator(".sheet .field", { hasText: "Starts" }).locator("input").fill("16:00");
+  await ava.locator(".sheet").getByRole("button", { name: /Ava/ }).click(); // tag Ava
+  // Tapping the heading must not press a button inside it (it used to pick "Everyone").
+  await ava.locator(".sheet").getByText("Who's involved").click();
+  await expect(ava.locator(".sheet").getByRole("button", { name: /Ava/ })).toHaveAttribute("aria-pressed", "true");
+  await ava.getByRole("radio", { name: "Weekly" }).click();
+  await ava.getByRole("button", { name: "Save" }).click();
+
+  const swims = ava.locator(".event-row", { hasText: "Swim lessons" });
+  await expect(swims.first()).toContainText("4:00");
+  expect(await swims.count()).toBeGreaterThanOrEqual(4); // weekly over the next 30 days
+
+  // Move only the second one to 5pm.
+  await swims.nth(1).click();
+  await ava.getByRole("button", { name: "Edit" }).click();
+  await expect(ava.getByRole("radio", { name: /^Only / })).toHaveAttribute("aria-checked", "true");
+  await ava.locator(".sheet .field", { hasText: "Starts" }).first().locator("input[type=time]").fill("17:00");
+  await ava.getByRole("button", { name: "Save" }).click();
+  await expect(swims.nth(1)).toContainText("5:00");
+  await expect(swims.nth(0)).toContainText("4:00");
+  await expect(swims.nth(2)).toContainText("4:00");
+
+  // Someone else can see it but not change it.
+  const wall = await open(browser, "wall", "/calendar");
+  await wall.locator(".event-row", { hasText: "Swim lessons" }).first().click();
+  await expect(wall.getByText("Added by Ava")).toBeVisible();
+  await expect(wall.getByRole("button", { name: "Edit" })).toHaveCount(0);
+});
+
+test("polls: ask, vote, and see the count", async ({ browser }) => {
+  const mom = await open(browser, "mom");
+  await mom.getByRole("button", { name: "New poll" }).click();
+  await mom.getByLabel("Question").fill("Taco Tuesday?");
+  await mom.getByLabel("Choice 1").fill("Yes!");
+  await mom.getByLabel("Choice 2").fill("Pasta instead");
+  await mom.getByRole("button", { name: "Put it on the fridge" }).click();
+  const poll = mom.locator(".poll", { hasText: "Taco Tuesday?" });
+  await poll.getByRole("button", { name: /Yes!/ }).click();
+  await expect(poll.getByRole("button", { name: /Yes!/ })).toHaveAttribute("aria-pressed", "true");
+
+  const ava = await open(browser, "ava");
+  const hers = ava.locator(".poll", { hasText: "Taco Tuesday?" });
+  await hers.getByRole("button", { name: /Pasta instead/ }).click();
+  await hers.getByRole("button", { name: /Yes!/ }).click(); // changed her mind
+  await expect(hers).toContainText("2 votes");
+  await expect(mom.locator(".poll", { hasText: "Taco Tuesday?" }).getByRole("button", { name: /Yes!/ })).toContainText("2");
+});
+
+test("camera: snap a photo straight onto the door, and it's on the art wall", async ({ browser }) => {
+  const ava = await open(browser, "ava");
+  await ava.getByLabel("Take a photo for the door").setInputFiles("demo/sample-doodle.png");
+  await expect(ava.locator(".compose-img img")).toBeVisible();
+  await ava.getByLabel("Note text").fill("Look what I made");
+  await ava.getByRole("button", { name: "Put it on the fridge" }).click();
+  const note = ava.locator(".note", { hasText: "Look what I made" });
+  await expect(note.locator("img")).toBeVisible();
+
+  await ava.getByRole("link", { name: "🖼️ Art wall" }).click();
+  await expect(ava.locator(".art-tile")).toHaveCount(2); // the seeded drawing + this photo
+  await ava.locator(".art-tile").first().click();
+  await expect(ava.getByText("Look what I made")).toBeVisible();
+});

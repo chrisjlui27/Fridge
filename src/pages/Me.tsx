@@ -43,6 +43,10 @@ export function MePage() {
         <p className="muted small">
           {who.session.label} · {who.session.kind === "account" ? "signed in as a parent" : isWall ? "shared wall screen" : `${viewer.name}'s device`}
         </p>
+        <p className="muted small">
+          App version {new Date(__APP_BUILD__.at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })} ·{" "}
+          {__APP_BUILD__.sha}
+        </p>
         <div className="row wrap">
           <Link className="btn ghost small" to="/wall">
             🖼️ Wall view
@@ -221,6 +225,7 @@ function Notifications() {
             <div className="row">
               <input
                 type="time"
+                aria-label="Evening summary time"
                 value={prefs.digestTime ?? ""}
                 disabled={prefs.digestTime === null}
                 onChange={(e) => void updatePrefs({ ...prefs, digestTime: e.target.value || null })}

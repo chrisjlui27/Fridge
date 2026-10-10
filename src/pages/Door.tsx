@@ -8,11 +8,13 @@ import { Sortable } from "../components/SortableGrid";
 import { EmptyState } from "../components/Controls";
 import { Sheet } from "../components/Sheet";
 import { Avatar } from "../components/Avatar";
+import { PollComposer, PollList } from "../components/Polls";
 
 export function DoorPage() {
   const notes = useQ(api.notes.door, {});
   const move = useM(api.notes.move);
-  const [composing, setComposing] = useState(false);
+  const [composing, setComposing] = useState<false | true | File>(false);
+  const [pollOpen, setPollOpen] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [archive, setArchive] = useState(false);
   const pinned = useMemo(() => notes?.filter((n) => n.lifespan === "pinned") ?? [], [notes]);
@@ -31,6 +33,7 @@ export function DoorPage() {
   return (
     <div className="page door">
       <TodayStrip />
+      <PollList />
       {notes === undefined ? (
         <div className="door-grid skeleton" aria-busy="true">
           {[1, 2, 3].map((i) => (
@@ -47,15 +50,41 @@ export function DoorPage() {
           {rest.length > 0 && grid(rest)}
         </>
       )}
-      <p className="center">
+      <p className="center row wrap door-links">
+        <Link className="btn ghost small" to="/art">
+          🖼️ Art wall
+        </Link>
         <button className="btn ghost small" onClick={() => setArchive(true)}>
           Taken down recently
         </button>
       </p>
-      <button className="fab" onClick={() => setComposing(true)} aria-label="New note">
-        ＋ Note
-      </button>
-      {composing && <NoteComposer onClose={() => setComposing(false)} />}
+      <div className="fab-row">
+        <label className="fab round" title="Take a photo for the door">
+          <span aria-hidden>📸</span>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            aria-label="Take a photo for the door"
+            className="visually-hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) setComposing(file);
+            }}
+          />
+        </label>
+        <button className="fab round secondary" onClick={() => setPollOpen(true)} aria-label="New poll" title="New poll">
+          🗳️
+        </button>
+        <button className="fab" onClick={() => setComposing(true)} aria-label="New note">
+          ＋ Note
+        </button>
+      </div>
+      {composing && (
+        <NoteComposer onClose={() => setComposing(false)} initialPhoto={composing instanceof File ? composing : undefined} />
+      )}
+      {pollOpen && <PollComposer onClose={() => setPollOpen(false)} />}
       {open && <NoteDetail note={open} onClose={() => setOpenId(null)} />}
       {archive && <ArchiveSheet onClose={() => setArchive(false)} />}
     </div>
@@ -82,7 +111,13 @@ function TodayStrip() {
           events.slice(0, 4).map((e) => (
             <li key={e._id}>
               <span className="dot" style={{ background: e.color }} />
-              <span className="event-time">{e.allDay ? "All day" : formatTime(e.start, tz)}</span> {e.title}
+              <span className="event-time">{e.allDay ? "All day" : formatTime(e.start, tz)}</span>
+              <Link to="/calendar" className="grow plain-link">
+                {e.title}
+              </Link>
+              {e.memberIds.map((id) => (
+                <Avatar key={id} member={member(id)} size={18} />
+              ))}
             </li>
           ))
         )}

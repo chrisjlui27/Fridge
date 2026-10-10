@@ -11,7 +11,8 @@ export default defineConfig(({ mode }) => ({
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
-      registerType: "autoUpdate",
+      // Ask before switching to a new version (see src/components/UpdateBanner.tsx).
+      registerType: "prompt",
       injectRegister: false,
       injectManifest: { globPatterns: ["**/*.{js,css,html,svg,png,webmanifest}"] },
       devOptions: { enabled: false },
@@ -37,5 +38,11 @@ export default defineConfig(({ mode }) => ({
       },
     }),
   ],
+  define: {
+    __APP_BUILD__: JSON.stringify({
+      sha: (process.env.VERCEL_GIT_COMMIT_SHA ?? "local").slice(0, 7),
+      at: new Date().toISOString(),
+    }),
+  },
   server: { port: 5173 },
 }));

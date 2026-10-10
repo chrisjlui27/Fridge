@@ -11,15 +11,21 @@ import { ThanksPage } from "./pages/Thanks";
 import { MePage } from "./pages/Me";
 import { FamilyPage } from "./pages/Family";
 import { WallPage } from "./pages/Wall";
+import { CalendarPage } from "./pages/Calendar";
+import { ArtPage } from "./pages/Art";
+import { UpdateBanner } from "./components/UpdateBanner";
 
 export function App() {
   return (
     <ErrorBoundary>
+      <UpdateBanner />
       <SessionProvider>
         <Routes>
           <Route path="/wall" element={<WallPage />} />
           <Route element={<Shell />}>
             <Route index element={<Home />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="art" element={<ArtPage />} />
             <Route path="lists" element={<ListsPage />} />
             <Route path="lists/:listId" element={<ListDetailPage />} />
             <Route path="owners" element={<OwnersPage />} />
@@ -44,6 +50,7 @@ function Shell() {
   const { who, viewer, isWall, requestActor } = useSession();
   const tabs = [
     { to: isWall ? "/wall" : "/", label: isWall ? "Wall" : "Door", icon: "🧲" },
+    { to: "/calendar", label: "Calendar", icon: "📅" },
     { to: "/lists", label: "Lists", icon: "🛒" },
     { to: "/jobs", label: "Jobs", icon: "✅" },
     { to: "/thanks", label: "Thanks", icon: "💛" },

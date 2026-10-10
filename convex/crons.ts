@@ -5,6 +5,7 @@ const crons = cronJobs();
 
 crons.interval("archive expired notes", { minutes: 30 }, internal.notes.archiveExpired, {});
 crons.interval("clear yesterday's statuses", { hours: 1 }, internal.maintenance.clearStaleStatuses, {});
+crons.interval("tidy closed polls", { hours: 1 }, internal.polls.archiveOld, {});
 crons.interval("refresh calendars", { minutes: 20 }, internal.calendar.refreshAll, {});
 crons.interval("evening digest", { minutes: 15 }, internal.digest.tick, {});
 // ~3am US Central. Snapshots are kept for 14 nights.

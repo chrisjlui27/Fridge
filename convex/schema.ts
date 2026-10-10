@@ -45,6 +45,13 @@ export const schedule = v.union(
   v.object({ kind: v.literal("weekly"), weekdays: v.array(v.number()) }),
 );
 
+export const repeatRule = v.object({
+  freq: v.union(v.literal("daily"), v.literal("weekly"), v.literal("monthly"), v.literal("yearly")),
+  interval: v.number(), // every N days/weeks/months/years
+  weekdays: v.optional(v.array(v.number())), // weekly: 0 = Sunday ... 6 = Saturday
+  until: v.optional(v.string()), // last possible day, inclusive
+});
+
 export const requestStatus = v.union(
   v.literal("open"), // waiting for the recipient
   v.literal("accepted"),
@@ -145,7 +152,9 @@ export default defineSchema({
     archivedBy: v.optional(v.id("members")),
   })
     .index("by_household_archived", ["householdId", "archivedAt"])
-    .index("by_expiry", ["archivedAt", "expiresAt"]),
+    .index("by_expiry", ["archivedAt", "expiresAt"])
+    // The art wall: every photo and doodle, newest first.
+    .index("by_household_image", ["householdId", "imageKind", "createdAt"]),
 
   privateNotes: defineTable({
     householdId: v.id("households"),
@@ -248,6 +257,52 @@ export default defineSchema({
     .index("by_household_at", ["householdId", "at"])
     .index("by_completion", ["completionId"])
     .index("by_note", ["noteId"]),
+
+  // The family calendar, kept in the app. Repeating events are one row with a
+  // rule; changing a single date adds it to skipDays and makes a one-off row
+  // (seriesId + occurrenceDay) for the replacement.
+  events: defineTable({
+    householdId: v.id("households"),
+    title: v.string(),
+    allDay: v.boolean(),
+    startDay: v.string(), // household-local "YYYY-MM-DD"
+    endDay: v.string(), // inclusive; same as startDay for one-day events
+    startTime: v.optional(v.string()), // "HH:MM" for timed events
+    endTime: v.optional(v.string()),
+    location: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    memberIds: v.array(v.id("members")), // empty = the whole family
+    repeats: v.boolean(),
+    repeat: v.optional(repeatRule),
+    skipDays: v.optional(v.array(v.string())),
+    seriesId: v.optional(v.id("events")),
+    occurrenceDay: v.optional(v.string()),
+    createdBy: v.id("members"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_household_start", ["householdId", "repeats", "startDay"])
+    .index("by_series", ["seriesId"]),
+
+  polls: defineTable({
+    householdId: v.id("households"),
+    authorId: v.id("members"),
+    question: v.string(),
+    options: v.array(v.object({ id: v.string(), text: v.string() })),
+    closesAt: v.number(),
+    closedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    archivedAt: v.optional(v.number()),
+  }).index("by_household_archived", ["householdId", "archivedAt"]),
+
+  // One row per person per poll; changing your vote updates your row.
+  pollVotes: defineTable({
+    householdId: v.id("households"),
+    pollId: v.id("polls"),
+    memberId: v.id("members"),
+    optionId: v.string(),
+    at: v.number(),
+  }).index("by_poll", ["pollId"]),
 
   calendarFeeds: defineTable({
     householdId: v.id("households"),

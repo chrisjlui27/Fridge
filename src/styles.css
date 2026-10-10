@@ -252,7 +252,8 @@ button {
   bottom: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   background: var(--surface);
   border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom);
@@ -264,7 +265,8 @@ button {
   align-items: center;
   gap: 2px;
   padding: 8px 0 6px;
-  font-size: 12px;
+  font-size: 11.5px;
+  min-width: 0;
   font-weight: 600;
   color: var(--ink-soft);
   text-decoration: none;
@@ -1849,4 +1851,359 @@ details summary {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* ---------- calendar ---------- */
+.plain-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.cal-filter {
+  margin-bottom: 8px;
+}
+
+.cal-day h2 {
+  margin-top: 16px;
+}
+
+.event-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  border-left: 5px solid var(--event, var(--accent));
+}
+
+.event-when {
+  flex: none;
+  width: 92px;
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.event-title {
+  display: block;
+  font-weight: 700;
+  font-size: 16.5px;
+}
+
+.event-people {
+  display: flex;
+  gap: 2px;
+  flex: none;
+}
+
+.event-big-when {
+  font-size: 17px;
+}
+
+.month-head h2 {
+  margin: 0;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+  margin: 8px 0 4px;
+}
+
+.month-dow {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  padding-bottom: 2px;
+}
+
+.month-day {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 74px;
+  padding: 4px 3px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.month-day.other {
+  opacity: 0.45;
+}
+
+.month-day.today .month-num {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-radius: 999px;
+  padding: 0 6px;
+}
+
+.month-day.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.month-num {
+  font-size: 13px;
+  font-weight: 700;
+  align-self: flex-start;
+}
+
+.month-bar {
+  display: block;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: #fff;
+  border-radius: 4px;
+  padding: 0 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.month-more {
+  font-size: 10.5px;
+  color: var(--ink-soft);
+}
+
+.repeat-box {
+  display: grid;
+  gap: 10px;
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.inline-field {
+  gap: 6px;
+  font-size: 15px;
+}
+
+.inline-field input[type="number"] {
+  width: 64px;
+}
+
+.row > .field {
+  flex: 1;
+  min-width: 130px;
+}
+
+/* ---------- update banner ---------- */
+.update-banner {
+  position: fixed;
+  top: calc(8px + env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(94vw, 520px);
+  padding: 8px 8px 8px 16px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  font-weight: 650;
+  animation: rise 0.18s ease;
+}
+
+.update-banner span {
+  flex: 1;
+}
+
+/* ---------- camera & door shortcuts ---------- */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.fab.round {
+  width: 52px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  font-size: 22px;
+}
+
+label.fab {
+  cursor: pointer;
+}
+
+.door-links {
+  justify-content: center;
+}
+
+/* ---------- polls ---------- */
+.polls {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.poll {
+  margin: 0;
+  border: 2px solid var(--line);
+}
+
+.poll-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.poll-head h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.poll-options {
+  display: grid;
+  gap: 8px;
+}
+
+.poll-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  font-weight: 650;
+}
+
+.poll-option:disabled {
+  cursor: default;
+}
+
+.poll-option.mine {
+  border-color: var(--accent);
+  border-width: 2px;
+}
+
+.poll-option.won {
+  border-color: var(--ok);
+}
+
+.poll-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  transition: width 0.3s ease;
+}
+
+.poll-text,
+.poll-voters {
+  position: relative;
+}
+
+.poll-text {
+  flex: 1;
+}
+
+.poll-voters {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.poll-count {
+  min-width: 22px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.poll-foot {
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.poll.closed .poll-option {
+  opacity: 0.85;
+}
+
+.polls.big .poll-option {
+  min-height: 58px;
+  font-size: 19px;
+}
+
+/* ---------- art wall ---------- */
+.art-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 8px;
+}
+
+.art-tile {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface-2);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.art-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #fff;
+}
+
+.art-by {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+}
+
+.art-badge {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+}
+
+.art-full {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.art-caption {
+  font-size: 18px;
 }

@@ -269,10 +269,10 @@ function Calendars() {
   const [color, setColor] = useState(MEMBER_COLORS[4]);
   return (
     <section className="card">
-      <h2>📅 Calendars</h2>
+      <h2>📅 Outside calendars (optional)</h2>
       <p className="muted small">
-        The fridge <em>shows</em> your existing calendars - it never edits them. Keep using the calendar apps you
-        already have. Feeds refresh every 20 minutes.
+        The family calendar lives in the app (the Calendar tab). If the school or a team publishes a calendar link,
+        you can also show it here, read-only. Feeds refresh every 20 minutes.
       </p>
       <ul className="plain-list">
         {feeds?.map((f) => (

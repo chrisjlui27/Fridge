@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { isValidElement, useId, type ReactNode } from "react";
 import type { Member, MemberId } from "../lib/session";
 import { Avatar } from "./Avatar";
 
@@ -138,13 +138,33 @@ export function EmptyState({ emoji, title, children }: { emoji: string; title: s
   );
 }
 
+const FORM_TAGS = new Set(["input", "textarea", "select"]);
+
+/**
+ * A labelled form field. A single input is wrapped in a <label>; anything else
+ * (chips, swatches, pickers) becomes a labelled group, so tapping the heading
+ * doesn't secretly press the first button inside it.
+ */
 export function Field({ label, hint, children }: { label: string; hint?: ReactNode; children: ReactNode }) {
+  const id = useId();
+  const single = isValidElement(children) && typeof children.type === "string" && FORM_TAGS.has(children.type);
+  if (single) {
+    return (
+      <label className="field">
+        <span className="field-label">{label}</span>
+        {children}
+        {hint && <span className="field-hint">{hint}</span>}
+      </label>
+    );
+  }
   return (
-    <label className="field">
-      <span className="field-label">{label}</span>
+    <div className="field" role="group" aria-labelledby={id}>
+      <span className="field-label" id={id}>
+        {label}
+      </span>
       {children}
       {hint && <span className="field-hint">{hint}</span>}
-    </label>
+    </div>
   );
 }
 

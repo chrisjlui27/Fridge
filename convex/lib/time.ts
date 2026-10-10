@@ -173,3 +173,11 @@ export function nextWeekday(after: Day, weekdays: number[]): Day {
   }
   return addDays(after, 7);
 }
+
+/** "15:30" -> "3:30pm", "18:00" -> "6pm" (for notification text). */
+export function clock12(hhmm: string): string {
+  const [h, m] = hhmm.split(":").map(Number);
+  const suffix = h < 12 ? "am" : "pm";
+  const hour = h % 12 === 0 ? 12 : h % 12;
+  return m ? `${hour}:${String(m).padStart(2, "0")}${suffix}` : `${hour}${suffix}`;
+}

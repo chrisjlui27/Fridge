@@ -15,7 +15,9 @@ How the research brief (*"Build the fridge door, not a 'smart' fridge"*) turned 
 | Kids push back on control and notice double standards (Penn State review; Blackwell et al. 2016). | Parents are in job rotations under the same rules. No location, no automatic read receipts, no "last seen". "Got it" is tapped, never recorded automatically. Everyone has a private space, parents included. | `jobs.ts`, `notes.gotIt`, `mine.ts` |
 | Family plans break; kids negotiate chores (Davidoff et al.; Klein et al.). | Requests, not assignments: *Yes / Another time / Can't*. Jobs have "Not today". | `convex/requests.ts` |
 | Batching notifications reduces stress; none at all raises anxiety (Fitz et al. 2019). Notification storms kill family apps. | One evening digest. Pings only for urgent or due-today requests and for notes marked time-sensitive, held until quiet hours end. Digests never mention undone chores. | `convex/digest.ts`, `lib/notify.ts` |
-| Calendar sync is the commonest way family displays fail; the shared screen shouldn't be the master calendar (Cast-Hub). | Read-only .ics feeds fetched every 20 minutes. If a fetch fails, the last good copy stays and the error is shown. | `convex/calendar.ts`, `lib/ical.ts` |
+| Calendar sync is the commonest way family displays fail (Cast-Hub). | **Revised after v1:** the household doesn't live in Google Calendar, so the family calendar is **built in**, with no sync to break. Repeating events, people tags, and edits to one date or every date. Optional read-only .ics feeds (school, team) still show alongside. | `convex/events.ts`, `lib/recur.ts`, `lib/calendarData.ts`, `src/pages/Calendar.tsx` |
+| Fridge items have very different lifespans; kids' art is kept for years (Swan & Taylor 2005). | The **art wall** keeps every photo and drawing, even after it comes off the door. Only a parent's "delete for good" removes it. | `convex/art.ts`, `src/pages/Art.tsx` |
+| Family coordination works when others contribute, not just one scheduler (Neustaedter et al.). | **Quick polls** let anyone put a small family decision to a vote on the door. They close on their own and tidy away a day later, so they don't silt up. | `convex/polls.ts` |
 | Kids engage by *doing* on the screen, not just reading (The Quality Edit). | The wall has big tap-to-tick jobs and grocery ticks. Tapping asks "Who did it?". | `WallPage` |
 | Free tiers that pause after a quiet week would leave a dead wall after a vacation. | Convex free tier (the brief notes the pause policy as unverified, so check it). Thin data layer, nightly export, optional webhook. | `convex/exporter.ts` |
 | Apps die when their maintainer stops maintaining them. | A small surface, 58 backend tests, 9 end-to-end flows, a no-account demo, and no CRDTs or sync engine. | `tests/`, `e2e/` |
@@ -34,6 +36,11 @@ How the research brief (*"Build the fridge door, not a 'smart' fridge"*) turned 
 - **Floating calendar times** (no time zone in the feed) are read as household wall-clock time. All-day events keep their dates.
 - **The wall caches its last known state** (and the session) in local storage, so a reload during a Wi-Fi blip shows the fridge, not a spinner. Writes made while offline are queued in memory by the Convex client and are lost if the tablet reloads before reconnecting. It dims 9pm–6am, and if anything crashes it reloads itself after 30 seconds.
 - **The demo is the real backend.** `npm run demo` runs the actual Convex functions in an in-memory database (`convex-test`) inside the Vite dev server, with a tiny stand-in client. The end-to-end tests use it, so they need no account or network.
+
+- **Repeating events are one row plus exceptions.** Changing a single date adds it to the series' `skipDays` and creates a one-off row that remembers which date it replaced; "every date" edits the series row. Repeats are expanded when they're read, for at most a 62-day window plus the event's length.
+- **The camera uses the phone's own camera app** (`<input capture>`), not an in-app viewfinder. It gives the best photo quality with the fewest permissions, and photos are shrunk on the phone before uploading.
+- **Updates ask first.** The service worker waits for "Refresh" instead of swapping code under someone mid-tap. The app checks for a new version when it's opened and every 30 minutes, and the wall applies updates on its own after a minute.
+- **Forms:** a field's heading is a real `<label>` only when it wraps a single input; groups of chips are labelled groups, so tapping a heading never presses the first chip.
 
 ## Known limits
 

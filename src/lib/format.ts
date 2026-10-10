@@ -84,3 +84,15 @@ export function deviceLabel(): string {
   const os = /iPhone|iPad|Mac/i.test(ua) ? "Apple" : /Android/i.test(ua) ? "Android" : /Windows/i.test(ua) ? "Windows" : "";
   return [os, kind].filter(Boolean).join(" ");
 }
+
+/** 0 = Sunday ... 6 = Saturday, as a short local name ("Tue"). */
+export function shortWeekday(d: number): string {
+  // 2026-10-04 is a Sunday.
+  return weekdayName(addDays("2026-10-04", d), "short");
+}
+
+export function ordinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}

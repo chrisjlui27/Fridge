@@ -1,7 +1,10 @@
 import type { TestConvex } from "convex-test";
+import type { FunctionArgs } from "convex/server";
 import { api } from "../convex/_generated/api";
 import type schema from "../convex/schema";
 import type { Id } from "../convex/_generated/dataModel";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { addDays, localDay, nextWeekday, zonedToMs } from "../convex/lib/time";
 
 const TZ = "America/Chicago";
@@ -157,54 +160,81 @@ export async function seed(t: TestConvex<typeof schema>) {
   await t.mutation(api.requests.respond, { sessionToken: wall, requestId: shoes, response: "accept" });
   await t.mutation(api.auth.stopActing, { sessionToken: wall });
 
-  // Read-only calendars (in real life these come from your calendar feeds)
-  await t.run(async (ctx) => {
-    const family = await ctx.db.insert("calendarFeeds", {
-      householdId: who.household._id,
-      name: "Family",
-      url: "https://example.com/family.ics",
-      color: "#4c6ef5",
-      lastFetchedAt: now,
-      eventCount: 4,
-    });
-    const school = await ctx.db.insert("calendarFeeds", {
-      householdId: who.household._id,
-      name: "School",
-      url: "https://example.com/school.ics",
-      color: "#29bf12",
-      lastFetchedAt: now,
-      eventCount: 2,
-    });
-    const timed = (feedId: typeof family, title: string, day: string, start: string, end: string, location?: string) =>
-      ctx.db.insert("calendarEvents", {
-        householdId: who.household._id,
-        feedId,
-        title,
-        location,
-        allDay: false,
-        start: at(day, start),
-        end: at(day, end),
-        startDay: day,
-        endDay: day,
-      });
-    const allDay = (feedId: typeof family, title: string, from: string, to: string) =>
-      ctx.db.insert("calendarEvents", {
-        householdId: who.household._id,
-        feedId,
-        title,
-        allDay: true,
-        start: at(from, "00:00"),
-        end: at(addDays(to, 1), "00:00"),
-        startDay: from,
-        endDay: to,
-      });
-    await timed(family, "Ava - volleyball practice", today, "17:30", "19:00", "High school gym");
-    await allDay(school, "Book fair", today, addDays(today, 1));
-    await timed(family, "Bella - dentist", nextWeekday(today, [4]), "15:30", "16:15");
-    await timed(school, "Early release", addDays(today, 1), "13:00", "13:30");
-    await allDay(family, "Grandma visits", nextWeekday(today, [6]), nextWeekday(today, [6]));
-    await timed(family, "Pizza night", addDays(today, 1), "18:00", "19:00");
+  // The family calendar
+  const event = (token: string, e: Omit<FunctionArgs<typeof api.events.create>, "sessionToken">) =>
+    t.mutation(api.events.create, { sessionToken: token, ...e });
+  await event(ava, {
+    title: "Volleyball practice",
+    allDay: false,
+    startDay: nextWeekday(addDays(today, -7), [2]),
+    startTime: "17:30",
+    endTime: "19:00",
+    location: "High school gym",
+    memberIds: [avaId],
+    repeat: { freq: "weekly", interval: 1, weekdays: [2, 4] },
   });
+  await event(mom, {
+    title: "Book fair",
+    allDay: true,
+    startDay: today,
+    endDay: addDays(today, 1),
+    memberIds: [],
+  });
+  await event(mom, {
+    title: "Bella - dentist",
+    allDay: false,
+    startDay: nextWeekday(today, [4]),
+    startTime: "15:30",
+    endTime: "16:15",
+    location: "Main St Dental",
+    memberIds: [bellaId, momId],
+  });
+  await event(dad, {
+    title: "Grandma visits",
+    allDay: true,
+    startDay: nextWeekday(today, [6]),
+    endDay: addDays(nextWeekday(today, [6]), 1),
+    memberIds: [],
+  });
+  await event(dad, {
+    title: "Pizza night",
+    allDay: false,
+    startDay: nextWeekday(addDays(today, -1), [5]),
+    startTime: "18:00",
+    memberIds: [],
+    repeat: { freq: "weekly", interval: 1, weekdays: [5] },
+  });
+  await event(mom, {
+    title: "Early release",
+    allDay: false,
+    startDay: addDays(today, 1),
+    startTime: "13:00",
+    memberIds: [avaId, bellaId, coraId],
+  });
+
+  // A poll on the door
+  const poll = await t.mutation(api.polls.create, {
+    sessionToken: ava,
+    question: "Saturday with Grandma?",
+    options: ["Lake", "Movies", "Bake cookies"],
+    closes: "3days",
+  });
+  await t.mutation(api.polls.vote, { sessionToken: ava, pollId: poll, optionId: "o1" });
+  await t.mutation(api.polls.vote, { sessionToken: dad, pollId: poll, optionId: "o3" });
+
+  // Kid art for the art wall
+  const png = readFileSync(join(process.cwd(), "demo/sample-doodle.png"));
+  const imageId = await t.run((ctx) => ctx.storage.store(new Blob([new Uint8Array(png)], { type: "image/png" })));
+  await asWall(t, wall, coraId);
+  await t.mutation(api.notes.create, {
+    sessionToken: wall,
+    text: "Our family!",
+    color: "white",
+    lifespan: "keep",
+    imageId,
+    imageKind: "doodle",
+  });
+  await t.mutation(api.auth.stopActing, { sessionToken: wall });
 
   return { mom, dad, ava, wall };
 }

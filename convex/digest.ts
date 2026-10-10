@@ -1,7 +1,8 @@
 import { internalMutation, type QueryCtx } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
 import { householdQuery } from "./lib/session";
-import { addDays, localDay, localTime, minutesOf, zonedToMs } from "./lib/time";
+import { addDays, clock12, localDay, localTime, minutesOf, zonedToMs } from "./lib/time";
+import { eventsInRange } from "./lib/calendarData";
 import { assigneeOf } from "./lib/jobs";
 import { queuePing } from "./lib/notify";
 import { DEFAULT_DIGEST_TIME } from "./lib/constants";
@@ -44,23 +45,15 @@ async function composeDigest(
   }
   if (thanks) lines.push(`💛 ${thanks} thank-you${thanks > 1 ? "s" : ""} for you today`);
 
-  const events = (
-    await ctx.db
-      .query("calendarEvents")
-      .withIndex("by_household_start", (q) =>
-        q
-          .eq("householdId", household._id)
-          .gte("start", zonedToMs(addDays(tomorrow, -31), "00:00", tz))
-          .lt("start", zonedToMs(addDays(tomorrow, 1), "00:00", tz)),
-      )
-      .collect()
-  ).filter((e) => e.startDay <= tomorrow && e.endDay >= tomorrow);
-  if (events.length) {
-    const titles = events
-      .sort((a, b) => a.start - b.start)
-      .map((e) => (e.allDay ? e.title : `${e.title} ${localTime(e.start, tz)}`));
-    lines.push(`📅 Tomorrow: ${list(titles)}`);
-  }
+  // Tomorrow's events, yours first.
+  const events = await eventsInRange(ctx, household, tomorrow, tomorrow);
+  const label = (e: (typeof events)[number]) =>
+    e.allDay || !e.startTime ? e.title : `${e.title} ${clock12(e.startTime)}`;
+  const yours = events.filter((e) => e.memberIds.includes(member._id));
+  const others = events.filter((e) => !e.memberIds.includes(member._id));
+  if (yours.length) lines.push(`📅 Tomorrow for you: ${list(yours.map(label))}`);
+  if (others.length) lines.push(`📅 ${yours.length ? "Also tomorrow" : "Tomorrow"}: ${list(others.map(label))}`);
+
 
   const jobs = (
     await ctx.db
@@ -97,6 +90,22 @@ async function composeDigest(
       .collect()
   ).filter((n) => n.toId === member._id && n.createdAt >= startOfToday);
   if (notes.length) lines.push(`📝 ${notes.length} note${notes.length > 1 ? "s" : ""} on the fridge for you`);
+
+  const polls = (
+    await ctx.db
+      .query("polls")
+      .withIndex("by_household_archived", (q) => q.eq("householdId", household._id).eq("archivedAt", undefined))
+      .collect()
+  ).filter((p) => p.closedAt === undefined && p.closesAt > now);
+  let unvoted = 0;
+  for (const p of polls) {
+    const votes = await ctx.db
+      .query("pollVotes")
+      .withIndex("by_poll", (q) => q.eq("pollId", p._id))
+      .collect();
+    if (!votes.some((v) => v.memberId === member._id)) unvoted++;
+  }
+  if (unvoted) lines.push(`🗳️ ${unvoted} poll${unvoted > 1 ? "s" : ""} waiting for your vote`);
 
   return lines;
 }

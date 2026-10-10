@@ -1,3 +1,4 @@
 {
+  "ignoreCommand": "bash scripts/vercel-ignore-build.sh",
   "rewrites": [{ "source": "/((?!assets/|sw.js|manifest.webmanifest|.*\\.png|.*\\.svg).*)", "destination": "/index.html" }]
 }

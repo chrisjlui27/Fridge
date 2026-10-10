@@ -11,6 +11,7 @@ import {
 } from "./lib/session";
 import { addDays, daysBetween, isDay, localDay, zonedToMs } from "./lib/time";
 import { normalizeFeedUrl, parseIcs } from "./lib/ical";
+import { eventsInRange } from "./lib/calendarData";
 
 /**
  * Read-only calendars: the fridge shows the family's existing calendars
@@ -96,45 +97,21 @@ export const refreshNow = householdMutation({
   },
 });
 
-/** Events overlapping [fromDay, toDay] (household days, inclusive). */
+/**
+ * Everything on the calendar for [fromDay, toDay] (household days,
+ * inclusive): the family's own events plus any subscribed feeds.
+ */
 export const range = householdQuery({
   args: { fromDay: v.string(), toDay: v.string() },
   handler: async (ctx, { fromDay, toDay }) => {
     if (!isDay(fromDay) || !isDay(toDay) || toDay < fromDay || daysBetween(fromDay, toDay) > 62) {
       fail("INVALID", "Bad date range.");
     }
-    const tz = ctx.s.household.timezone;
-    const lower = zonedToMs(addDays(fromDay, -31), "00:00", tz);
-    const upper = zonedToMs(addDays(toDay, 1), "00:00", tz);
-    const events = await ctx.db
-      .query("calendarEvents")
-      .withIndex("by_household_start", (q) =>
-        q.eq("householdId", ctx.s.household._id).gte("start", lower).lt("start", upper),
-      )
-      .collect();
-    const feeds = new Map(
-      (
-        await ctx.db
-          .query("calendarFeeds")
-          .withIndex("by_household", (q) => q.eq("householdId", ctx.s.household._id))
-          .collect()
-      ).map((f) => [f._id, f]),
-    );
-    return events
-      .filter((e) => e.endDay >= fromDay && e.startDay <= toDay)
-      .map((e) => ({
-        _id: e._id,
-        title: e.title,
-        location: e.location ?? null,
-        allDay: e.allDay,
-        start: e.start,
-        end: e.end,
-        startDay: e.startDay,
-        endDay: e.endDay,
-        color: feeds.get(e.feedId)?.color ?? "#888",
-        feedName: feeds.get(e.feedId)?.name ?? "",
-      }))
-      .sort((a, b) => Number(b.allDay) - Number(a.allDay) || a.start - b.start);
+    const items = await eventsInRange(ctx, ctx.s.household, fromDay, toDay);
+    return items.map((e) => ({
+      ...e,
+      canEdit: e.source === "fridge" && (ctx.s.isParentAccount || ctx.s.viewer?._id === e.createdBy),
+    }));
   },
 });
 

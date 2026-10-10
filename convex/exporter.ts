@@ -44,6 +44,31 @@ export const core = internalQuery({
       .query("calendarFeeds")
       .withIndex("by_household", (q) => q.eq("householdId", householdId))
       .collect();
+    const events = await ctx.db
+      .query("events")
+      .withIndex("by_household_start", (q) => q.eq("householdId", householdId))
+      .collect();
+    const polls = await ctx.db
+      .query("polls")
+      .withIndex("by_household_archived", (q) => q.eq("householdId", householdId))
+      .collect();
+    const pollOut = [];
+    for (const p of polls) {
+      const votes = await ctx.db
+        .query("pollVotes")
+        .withIndex("by_poll", (q) => q.eq("pollId", p._id))
+        .collect();
+      pollOut.push({
+        id: p._id,
+        author: p.authorId,
+        question: p.question,
+        options: p.options,
+        votes: votes.map((x) => ({ member: x.memberId, option: x.optionId })),
+        createdAt: p.createdAt,
+        closesAt: p.closesAt,
+        closedAt: p.closedAt ?? null,
+      });
+    }
     const listOut = [];
     for (const l of lists) {
       const items = await ctx.db
@@ -120,6 +145,24 @@ export const core = internalQuery({
         notes: j.notes ?? null,
         archivedAt: j.archivedAt ?? null,
       })),
+      events: events.map((e) => ({
+        id: e._id,
+        title: e.title,
+        allDay: e.allDay,
+        startDay: e.startDay,
+        endDay: e.endDay,
+        startTime: e.startTime ?? null,
+        endTime: e.endTime ?? null,
+        location: e.location ?? null,
+        notes: e.notes ?? null,
+        people: e.memberIds,
+        repeat: e.repeat ?? null,
+        skipDays: e.skipDays ?? [],
+        seriesId: e.seriesId ?? null,
+        occurrenceDay: e.occurrenceDay ?? null,
+        createdBy: e.createdBy,
+      })),
+      polls: pollOut,
       calendars: feeds.map((f) => ({ name: f.name, url: f.url, color: f.color })),
     };
   },

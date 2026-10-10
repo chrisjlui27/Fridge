@@ -124,6 +124,14 @@ export const remove = householdMutation({
         await ctx.db.patch(job._id, { rotation, turn: idx % rotation.length });
       }
     }
+    for (const ev of await ctx.db
+      .query("events")
+      .withIndex("by_household_start", (q) => q.eq("householdId", householdId))
+      .collect()) {
+      if (ev.memberIds.includes(m._id)) {
+        await ctx.db.patch(ev._id, { memberIds: ev.memberIds.filter((id) => id !== m._id) });
+      }
+    }
     for (const list of await ctx.db
       .query("lists")
       .withIndex("by_household", (q) => q.eq("householdId", householdId))

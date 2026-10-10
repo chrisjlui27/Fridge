@@ -8,9 +8,9 @@ It copies the paper fridge's best qualities. Anyone can post, rearrange and take
 |---|---|
 | ![Wall view](docs/screenshots/wall.png) | ![The door on a phone](docs/screenshots/door.png) |
 
-| Requests and jobs | Thanks |
+| Family calendar | Requests and jobs |
 |---|---|
-| ![Jobs](docs/screenshots/jobs.png) | ![Thanks](docs/screenshots/thanks.png) |
+| ![Calendar](docs/screenshots/calendar.png) | ![Jobs](docs/screenshots/jobs.png) |
 
 ## Try it in a minute (no accounts)
 
@@ -25,7 +25,9 @@ Open <http://localhost:5173> and pick a device: Mom's phone, Dad's phone, Ava's 
 
 | | What it does |
 |---|---|
-| 🧲 **The door** | Sticky notes with a colour, an author, an optional photo or doodle, and "for everyone" or "for [person]". Each note is **pinned**, or lasts **today**, **this week** or **until removed**. Expired notes take themselves down. Drag to rearrange. Anyone can take a note down; it can be put back for 30 days. Only a parent can delete it for good. |
+| 🧲 **The door** | Sticky notes with a colour, an author, an optional photo or doodle, and "for everyone" or "for [person]". **📸 snaps a photo with the phone's camera** straight onto the door. Each note is **pinned**, or lasts **today**, **this week** or **until removed**. Expired notes take themselves down. Drag to rearrange. Anyone can take a note down; it can be put back for 30 days. Only a parent can delete it for good. |
+| 🗳️ **Quick polls** | "Pizza or tacos Friday?" Two to six choices; everyone taps a vote (and can change it). Polls close tonight, tomorrow, in 3 days or in a week, show the winner for a day, then tidy themselves away. |
+| 🖼️ **Art wall** | Every photo and drawing that's ever been on the door, month by month, kept after it comes down. Put a favourite back on the door with one tap. |
 | 🛒 **Shared lists** | Groceries first, then any list. Updates instantly everywhere, and anyone can add. Each list has an **owner** who does the noticing, planning, buying and checking, plus an optional agreed "standard" ("never out of milk, bread or fruit"). *Who owns what* shows every area on one screen for a weekly re-deal. |
 | 🙋 **Requests, not assignments** | Ask someone for something. They answer **Yes**, **Another time** (and suggest one), or **Can't** (and say why). A request isn't proof anyone agreed to it. |
 | ✅ **Recurring family jobs** | Rotations that include the grown-ups. Schedules are "every N days, counted from when it was actually done" or fixed weekdays. Credit goes to whoever did it. "Not today" pushes it to tomorrow, and a mis-tap can be undone for 10 minutes. |
@@ -33,10 +35,11 @@ Open <http://localhost:5173> and pick a device: Mom's phone, Dad's phone, Ava's 
 | 👪 **Profiles** | Parents sign in with email and password. Kids don't need accounts: they tap their picture on the wall (plus a 4-digit PIN, if they have one), or a parent pairs their phone with a one-time code. Everyone gets a private **My space**. |
 | 💛 **Thanks** | A feed of what got done for the family this week, with **specific** thanks. The thanks box nudges toward praising the other person ("you're really good at…", "you noticed…"). There are no points, totals per person or leaderboards. |
 | 🔔 **Quiet notifications** | Off until each person turns them on for their own device. One evening summary, plus a ping only for things that are time-sensitive for you, held until your quiet hours end. Never reminders about undone chores. |
-| 📅 **Calendars, read-only** | Shows your existing Google/Apple/school calendars from their .ics feeds, refreshed every 20 minutes. The fridge never edits them, so it never becomes the master calendar. |
+| 📅 **Family calendar** | Built in. Events at a time or all day (up to a month long), with a place and notes. **Repeating events** (daily, weekly on chosen days, every other week, monthly, yearly), where you can change or delete one date or every date. **Tag who's involved**; their avatars show, and "Just me" filters to your events. Anyone adds; whoever added it (or a parent) can change it. Upcoming list and month view. Tomorrow's events (yours first) go in the evening summary. An optional read-only .ics feed (school, team) can be shown alongside. |
 | 💾 **Your data** | One-tap JSON export for parents, a nightly snapshot (last 14 kept), and an optional nightly POST to your own storage. |
+| ✨ **Updates** | When a new version is deployed, open apps show "A new version of the fridge is ready - Refresh". **Me → This device** shows which version you're on. See [docs/updating.md](docs/updating.md). |
 
-**Deliberately left out of v1:** points, stars and allowance; meal planning and pantry tracking; barcodes and grocery delivery; writing to calendars; location; chat threads; SMS; and every AI feature. The reasons are in [docs/design-notes.md](docs/design-notes.md). Use the core for a few weeks before adding anything.
+**Deliberately left out so far:** points, stars and allowance; meal planning and pantry tracking; barcodes and grocery delivery; syncing with Google/Apple calendars; location; chat threads; SMS; and every AI feature. The reasons are in [docs/design-notes.md](docs/design-notes.md). Use the core for a few weeks before adding anything.
 
 ## Set it up for your family
 
@@ -79,10 +82,7 @@ That one build command deploys the backend and builds the app pointing at it. SP
 3. **Second parent:** *Give a login*, then they open the site, tap **I have a code**, enter it and choose their own email and password.
 4. **Kids' phones (optional):** *Connect their phone* creates a one-time code. The phone stays signed in as that kid.
 5. **Wall PINs:** worth setting once kids are old enough to tap in as a sibling.
-6. **Calendars:** *Family settings → Calendars*, paste each calendar's .ics link:
-   - Google Calendar: Settings → (your calendar) → *Integrate calendar* → **Secret address in iCal format**
-   - Apple Calendar: share the calendar → *Public Calendar* → copy the `webcal://` link
-   - School or team sites: look for "Subscribe" or "iCal". (Whether Quitman ISD offers a subscribable feed is unknown; check the district calendar page.)
+6. **Calendar:** add the regulars in the **Calendar** tab: practices, lessons, pizza night, birthdays (repeat yearly). If the school or a team publishes a calendar link ("Subscribe" or "iCal"), *Family settings → Outside calendars* can show it alongside, read-only. (Whether Quitman ISD offers one is unknown; check the district calendar page.)
 7. Everyone: open the site on your phone and **Add to Home Screen**.
 
 ### 5. The kitchen tablet
@@ -133,12 +133,16 @@ docs/          design notes and screenshots
 |---|---|
 | `npm run demo` | Try the app with sample data, no accounts |
 | `npm run dev` | Convex dev deployment + Vite |
-| `npm test` | 58 backend tests: auth, permissions, privacy, lifespans, rotations, requests, digest, calendar parsing, export |
-| `npm run e2e` | 9 end-to-end flows in a phone-sized browser (run `npx playwright install chromium` once) |
+| `npm test` | 74 backend tests: auth, permissions, privacy, lifespans, rotations, requests, repeating events, polls, art wall, digest, calendar parsing, export |
+| `npm run e2e` | 12 end-to-end flows in a phone-sized browser (run `npx playwright install chromium` once) |
 | `npm run typecheck` / `npm run build` | Type-check everything / production build |
 | `npm run icons` | Re-render the PNG icons from `public/favicon.svg` |
 
 `convex/_generated/` is committed, as Convex recommends. `npx convex dev` regenerates it when functions change.
+
+## Shipping updates
+
+`main` is the live app; changes go to a work branch, get a Vercel Preview against your test backend, and go live when you merge. The one-time Vercel settings, the day-to-day steps, and how to roll back are in **[docs/updating.md](docs/updating.md)**.
 
 ## What's next
 
