@@ -10,20 +10,24 @@ work branch ──push──▶ Vercel Preview (test backend) ──you try it�
 - **Every other branch gets a Preview**: its own link, running against your Convex *development* (test) backend.
 - **You decide when it goes live** by merging the pull request.
 
+## The short version
+
+1. Claude opens a pull request on GitHub.
+2. You press **Merge pull request**, then **Confirm merge**.
+3. Wait about 2 minutes while Vercel deploys.
+4. On your phone, open the app and tap **Refresh** on the "new version" banner. (For the very first update, fully close the app and reopen it instead.)
+
+If anything looks wrong afterwards: Vercel → Deployments → the previous one → **⋯ → Instant Rollback**. Your data is never touched.
+
+Everything below is optional, for trying changes on a preview before they go live.
+
 ## One-time setup (about 10 minutes)
 
-### 0. Create `main` at the version that's live now
+### 0–1. `main` exists and is Vercel's production branch (done)
 
-On GitHub, open **<https://github.com/chrisjlui27/Fridge/tree/a0e7b17>** (the code your family is running today). Click the branch menu at the top left (it shows `a0e7b17`), type `main`, and choose **Create branch main from a0e7b17**.
+Vercel → Settings → Environments → Production → Branch Tracking is set to `main`.
 
-(From a terminal, `git push origin a0e7b17:refs/heads/main` does the same thing.)
-
-### 1. Make `main` the production branch in Vercel
-
-Vercel → your project → **Settings → Environments → Production → Branch Tracking** → `main` → Save.
-(In older Vercel layouts it's **Settings → Git → Production Branch**.)
-
-### 2. Give Production and Preview their own Convex keys
+### 2. (Optional) Give previews a test backend
 
 Vercel → your project → **Settings → Environment Variables**:
 
