@@ -21,11 +21,24 @@ async function start() {
       root.render(
         <div className="welcome">
           <div className="welcome-card">
-            <h1>Almost there</h1>
-            <p>
-              This build doesn't know where its backend is. Set <code>VITE_CONVEX_URL</code> (run{" "}
-              <code>npx convex dev</code> once, or see the README), or try <code>npm run demo</code>.
-            </p>
+            {import.meta.env.VITE_PREVIEW_NO_BACKEND ? (
+              <>
+                <h1>Preview build</h1>
+                <p>
+                  This is a preview of a change, built without a test backend, so there's nothing to click here. Your
+                  family's app isn't affected. To try changes before they go live, add a test key (see{" "}
+                  <code>docs/updating.md</code>).
+                </p>
+              </>
+            ) : (
+              <>
+                <h1>Almost there</h1>
+                <p>
+                  This build doesn't know where its backend is. Set <code>VITE_CONVEX_URL</code> (run{" "}
+                  <code>npx convex dev</code> once, or see the README), or try <code>npm run demo</code>.
+                </p>
+              </>
+            )}
           </div>
         </div>,
       );
