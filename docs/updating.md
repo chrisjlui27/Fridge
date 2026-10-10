@@ -15,7 +15,7 @@ work branch ──push──▶ Vercel Preview (test backend) ──you try it�
 1. Claude opens a pull request on GitHub.
 2. You press **Merge pull request**, then **Confirm merge**.
 3. Wait about 2 minutes while Vercel deploys.
-4. On your phone, open the app and tap **Refresh** on the "new version" banner. (For the very first update, fully close the app and reopen it instead.)
+4. On your phone, open the app. It picks up the new version by itself. If the app was already open, a **"✨ A new version is ready"** banner appears: tap **Refresh**.
 
 If anything looks wrong afterwards: Vercel → Deployments → the previous one → **⋯ → Instant Rollback**. Your data is never touched.
 
@@ -54,12 +54,12 @@ GitHub → the repo → **Settings → General → Default branch** → `main`. 
 3. **Try it.** A preview uses the test backend, so the first time you'll see the setup screen. Make a throwaway household ("Test House") and click around. Don't add the preview to your Home Screen.
 4. **Open a pull request** from the work branch into `main` (or ask Claude to open one), then **Merge**.
 5. **Vercel builds Production** (1–2 minutes). The build runs `npx convex deploy` first, which updates the backend, and then publishes the new app.
-6. **On your phone:** open the fridge. A banner says **"✨ A new version of the fridge is ready"**. Tap **Refresh**. The app checks for updates when you open it and every 30 minutes while it's open.
+6. **On your phone:** open the fridge. The new version installs itself in the background. If the app was already open, a banner says **"✨ A new version of the fridge is ready"**; tap **Refresh**. The app checks for updates when you open it and every 30 minutes while it's open.
 7. **Check it landed:** **Me → This device → App version** shows the build date and the commit (the first 7 characters of the merge commit in GitHub).
 
-### The very first update only
+### Phones that installed the app before October 10
 
-The version on your phone now is older than the banner. After the first update is live, **fully close the app (swipe it away in the app switcher) and open it again**. Once is usually enough, sometimes twice. After that, the banner takes care of it.
+Those copies were stuck waiting for every copy of the app to close, which phones rarely do. The October 10 fix makes them switch over by themselves the next time they're opened. If one still looks old, delete the Home Screen icon, add it again from Safari, and sign in again.
 
 ## If something goes wrong
 

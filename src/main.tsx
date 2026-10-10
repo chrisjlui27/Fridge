@@ -4,7 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { App } from "./App";
 import { ToastProvider } from "./components/Toast";
-import { markUpdateReady, setUpdater } from "./lib/updates";
+import { markUpdateReady } from "./lib/updates";
 import "./styles.css";
 
 const isDemo = import.meta.env.MODE === "demo";
@@ -47,22 +47,22 @@ async function start() {
     client = new ConvexReactClient(url);
     if ("serviceWorker" in navigator && import.meta.env.PROD) {
       const { registerSW } = await import("virtual:pwa-register");
-      setUpdater(
-        registerSW({
-          immediate: true,
-          onNeedRefresh: markUpdateReady,
-          onRegisteredSW(_url, registration) {
-            if (!registration) return;
-            // Installed apps can stay open for days: look for updates every
-            // half hour and whenever the app comes back to the foreground.
-            const check = () => void registration.update().catch(() => {});
-            window.setInterval(check, 30 * 60 * 1000);
-            document.addEventListener("visibilitychange", () => {
-              if (document.visibilityState === "visible") check();
-            });
-          },
-        }),
-      );
+      registerSW({
+        immediate: true,
+        // A new version just took over: offer a refresh instead of reloading
+        // under someone mid-tap.
+        onNeedReload: markUpdateReady,
+        onRegisteredSW(_url, registration) {
+          if (!registration) return;
+          // Installed apps can stay open for days: look for updates every
+          // half hour and whenever the app comes back to the foreground.
+          const check = () => void registration.update().catch(() => {});
+          window.setInterval(check, 30 * 60 * 1000);
+          document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") check();
+          });
+        },
+      });
     }
   }
   root.render(
