@@ -1,17 +1,13 @@
 import { useSyncExternalStore } from "react";
 
 /**
- * "A new version is ready" plumbing. main.tsx registers the service worker and
- * hands us its update function; the banner subscribes to readiness.
+ * "A new version is ready" plumbing. The service worker installs updates by
+ * itself; main.tsx tells us when one has taken over, and the banner offers a
+ * reload so nobody loses what they were typing.
  */
 
-let apply: ((reloadPage?: boolean) => Promise<void>) | null = null;
 let ready = false;
 const listeners = new Set<() => void>();
-
-export function setUpdater(fn: (reloadPage?: boolean) => Promise<void>) {
-  apply = fn;
-}
 
 export function markUpdateReady() {
   ready = true;
@@ -28,7 +24,6 @@ export function useUpdateReady(): boolean {
   );
 }
 
-export async function applyUpdate() {
-  if (apply) await apply(true);
-  else window.location.reload();
+export function applyUpdate() {
+  window.location.reload();
 }

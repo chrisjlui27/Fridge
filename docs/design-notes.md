@@ -39,7 +39,7 @@ How the research brief (*"Build the fridge door, not a 'smart' fridge"*) turned 
 
 - **Repeating events are one row plus exceptions.** Changing a single date adds it to the series' `skipDays` and creates a one-off row that remembers which date it replaced; "every date" edits the series row. Repeats are expanded when they're read, for at most a 62-day window plus the event's length.
 - **The camera uses the phone's own camera app** (`<input capture>`), not an in-app viewfinder. It gives the best photo quality with the fewest permissions, and photos are shrunk on the phone before uploading.
-- **Updates ask first.** The service worker waits for "Refresh" instead of swapping code under someone mid-tap. The app checks for a new version when it's opened and every 30 minutes, and the wall applies updates on its own after a minute.
+- **Updates install themselves; the reload asks first.** A new service worker takes over as soon as it's downloaded, because waiting for every copy of the app to close left installed iPhone apps stuck on old versions. Open pages show "Refresh" rather than reloading under someone mid-tap; the wall reloads itself after a minute. The app checks for a new version when it's opened and every 30 minutes.
 - **Forms:** a field's heading is a real `<label>` only when it wraps a single input; groups of chips are labelled groups, so tapping a heading never presses the first chip.
 
 ## Known limits

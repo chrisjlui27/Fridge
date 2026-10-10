@@ -11,8 +11,9 @@ export default defineConfig(({ mode }) => ({
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
-      // Ask before switching to a new version (see src/components/UpdateBanner.tsx).
-      registerType: "prompt",
+      // New versions activate right away; open apps offer a refresh
+      // (src/components/UpdateBanner.tsx). Older installs reload themselves.
+      registerType: "autoUpdate",
       injectRegister: false,
       injectManifest: { globPatterns: ["**/*.{js,css,html,svg,png,webmanifest}"] },
       devOptions: { enabled: false },
